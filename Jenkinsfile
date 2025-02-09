@@ -41,7 +41,7 @@ pipeline {
         stage('Subir Imagen a Nexus') {
             steps {
                 script {
-                    withDockerRegistry([credentialsId: REGISTRY_CREDENTIALS, url: "https://${REGISTRY_URL}"]) {
+                    withDockerRegistry([credentialsId: REGISTRY_CREDENTIALS, url: "http://${REGISTRY_URL}"]) {
                         sh "docker push ${REGISTRY_URL}/${IMAGE_NAME}:${IMAGE_TAG}"
                     }
                 }
