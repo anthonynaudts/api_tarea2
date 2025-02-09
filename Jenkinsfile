@@ -4,8 +4,8 @@ pipeline {
     environment {
         REGISTRY_URL = 'http://localhost:8081/repository/docker-hosted'
         REGISTRY_CREDENTIALS = 'nexus-credentials-id'
-        IMAGE_NAME = 'anthonynaudts/api_tarea2'
-        IMAGE_TAG = "v1"
+        IMAGE_NAME = 'api_tarea2'
+        IMAGE_TAG = "latest"
         SERVER_USER = 'root'
         SERVER_IP = '159.65.162.105'
         CONTAINER_NAME = 'api_tarea25000'
@@ -33,7 +33,7 @@ pipeline {
         stage('Construir Imagen Docker') {
             steps {
                 script {
-                    bat "docker build -t ${REGISTRY_URL}/${IMAGE_NAME}:${IMAGE_TAG} ."
+                    bat "docker build -t localhost:8081/docker-hosted/anthonynaudts-api_tarea2:v1 ."
                 }
             }
         }
