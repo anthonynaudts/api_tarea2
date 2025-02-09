@@ -2,10 +2,11 @@ pipeline {
     agent any
 
     environment {
-        REGISTRY_URL = 'http://host.docker.internal:8082/repository/docker-hosted'
-        REGISTRY_CREDENTIALS = 'nexus-credentials-id'
-        IMAGE_NAME = 'anthonynaudts/api_tarea2'
+        REGISTRY_URL = 'host.docker.internal:8082'
+        REPOSITORY_NAME = 'anthonynaudts/api_tarea2'
         IMAGE_TAG = 'v1'
+        IMAGE_NAME = "${REGISTRY_URL}/${REPOSITORY_NAME}:${IMAGE_TAG}"
+        REGISTRY_CREDENTIALS = 'nexus-credentials-id'
         SERVER_USER = 'root'
         SERVER_IP = '159.65.162.105'
         CONTAINER_NAME = 'api_tarea25000'
@@ -33,7 +34,7 @@ pipeline {
         stage('Construir Imagen Docker') {
             steps {
                 script {
-                    bat "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+                    bat "docker build -t ${IMAGE_NAME} ."
                 }
             }
         }
@@ -41,9 +42,9 @@ pipeline {
         stage('Subir Imagen a Nexus') {
             steps {
                 script {
-                    withDockerRegistry([credentialsId: 'nexus-credentials-id', url: 'http://host.docker.internal:8082/repository/docker-hosted']) {
+                    withDockerRegistry([credentialsId: REGISTRY_CREDENTIALS, url: "http://${REGISTRY_URL}/repository/docker-hosted"]) {
                         bat """
-                            docker push ${REGISTRY_URL}/${IMAGE_NAME}:${IMAGE_TAG}
+                            docker push ${IMAGE_NAME}
                         """
                     }
                 }
@@ -56,10 +57,10 @@ pipeline {
                     sshagent(['server-ssh-key']) {
                         bat """
                         ssh ${SERVER_USER}@${SERVER_IP} '
-                        docker pull ${REGISTRY_URL}/${IMAGE_NAME}:${IMAGE_TAG} &&
+                        docker pull ${IMAGE_NAME} &&
                         docker stop ${CONTAINER_NAME} || true &&
                         docker rm ${CONTAINER_NAME} || true &&
-                        docker run -d --name ${CONTAINER_NAME} -p ${HOST_PORT}:${CONTAINER_PORT} ${REGISTRY_URL}/${IMAGE_NAME}:${IMAGE_TAG}
+                        docker run -d --name ${CONTAINER_NAME} -p ${HOST_PORT}:${CONTAINER_PORT} ${IMAGE_NAME}
                         '
                         """
                     }
