@@ -33,7 +33,7 @@ pipeline {
         stage('Construir Imagen Docker') {
             steps {
                 script {
-                    sh "docker build -t ${REGISTRY_URL}/${IMAGE_NAME}:${IMAGE_TAG} ."
+                    bat "docker build -t ${REGISTRY_URL}/${IMAGE_NAME}:${IMAGE_TAG} ."
                 }
             }
         }
@@ -42,7 +42,7 @@ pipeline {
             steps {
                 script {
                     withDockerRegistry([credentialsId: REGISTRY_CREDENTIALS, url: "https://${REGISTRY_URL}"]) {
-                        sh "docker push ${REGISTRY_URL}/${IMAGE_NAME}:${IMAGE_TAG}"
+                        bat "docker push %REGISTRY_URL%/%IMAGE_NAME%:%IMAGE_TAG%"
                     }
                 }
             }
