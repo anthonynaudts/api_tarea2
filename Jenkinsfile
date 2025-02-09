@@ -43,7 +43,7 @@ pipeline {
         script {
             withDockerRegistry([credentialsId: 'nexus-credentials-id', url: 'http://host.docker.internal:8082/repository/docker-hosted']) {
                 bat """
-                    docker push host.docker.internal:8082/${IMAGE_NAME}:v1
+                    docker push host.docker.internal:8082/anthonynaudts/api_tarea2:v1
                 """
             }
         }
