@@ -8,6 +8,11 @@ use yup_oauth2::{ServiceAccountAuthenticator, ServiceAccountKey};
 use std::collections::HashMap;
 use std::fs;
 use env_logger;
+use aes_gcm::Aes256Gcm;
+use aes_gcm::aead::{Aead, KeyInit, generic_array::GenericArray};
+use base64::{engine::general_purpose::STANDARD as BASE64_STANDARD, Engine as _};
+
+
 
 #[derive(Serialize, Deserialize, Clone)]
 struct Usuario {
@@ -47,11 +52,32 @@ fn connect_db() -> rusqlite::Result<Connection> {
 }
 
 
+fn desencriptar_json() -> String {
+    const SECRET_KEY: &[u8; 32] = b"11111111111111111111111111111111";
+
+    let encrypted_content = fs::read_to_string("service-account.enc").expect("No se pudo leer el archivo cifrado");
+
+    let parts: Vec<&str> = encrypted_content.split(':').collect();
+    if parts.len() != 2 {
+        panic!("Formato inválido del archivo cifrado");
+    }
+
+    let nonce = BASE64_STANDARD.decode(parts[0]).expect("Error al decodificar nonce");
+    let encrypted_data = BASE64_STANDARD.decode(parts[1]).expect("Error al decodificar datos");
+
+    let key = GenericArray::from_slice(SECRET_KEY);
+    let cipher = Aes256Gcm::new(key);
+
+    let decrypted_data = cipher.decrypt(GenericArray::from_slice(&nonce), encrypted_data.as_ref())
+        .expect("Error al descifrar archivo");
+
+    String::from_utf8(decrypted_data).expect("Error en formato UTF-8")
+}
+
 
 async fn obtener_access_token() -> Result<String, Error> {
-    let creds = fs::read_to_string("service-account.json")
-        .map_err(|_| actix_web::error::ErrorInternalServerError("No se pudo leer el archivo de credenciales"))?;
-    
+    let creds = desencriptar_json();
+
     let service_account_key: ServiceAccountKey = serde_json::from_str(&creds)
         .map_err(|_| actix_web::error::ErrorInternalServerError("Error en el formato de credenciales"))?;
 
@@ -66,6 +92,28 @@ async fn obtener_access_token() -> Result<String, Error> {
     eprintln!("Access Token obtenido correctamente.");
     Ok(token.token().unwrap_or("").to_string())
 }
+
+
+
+
+// async fn obtener_access_token() -> Result<String, Error> {
+//     let creds = fs::read_to_string("service-account.json")
+//         .map_err(|_| actix_web::error::ErrorInternalServerError("No se pudo leer el archivo de credenciales"))?;
+    
+//     let service_account_key: ServiceAccountKey = serde_json::from_str(&creds)
+//         .map_err(|_| actix_web::error::ErrorInternalServerError("Error en el formato de credenciales"))?;
+
+//     let auth = ServiceAccountAuthenticator::builder(service_account_key)
+//         .build()
+//         .await
+//         .map_err(|_| actix_web::error::ErrorInternalServerError("No se pudo autenticar con Firebase"))?;
+
+//     let token = auth.token(&["https://www.googleapis.com/auth/firebase.messaging"]).await
+//         .map_err(|_| actix_web::error::ErrorInternalServerError("Error al obtener el token de acceso"))?;
+
+//     eprintln!("Access Token obtenido correctamente.");
+//     Ok(token.token().unwrap_or("").to_string())
+// }
 
 
 
@@ -102,7 +150,7 @@ async fn enviar_notificacion(
     let status = response.status();
     let body = response.text().await.unwrap_or_else(|_| "Error obteniendo respuesta".to_string());
 
-    eprintln!("🔹 Respuesta Completa de Firebase: Status = {}, Body = {}", status, body);
+    eprintln!("Respuesta Completa de Firebase: Status = {}, Body = {}", status, body);
 
     if status.is_success() {
         Ok(())

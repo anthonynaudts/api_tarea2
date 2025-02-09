@@ -6,6 +6,7 @@ COPY Cargo.toml Cargo.lock ./
 COPY src ./src
 COPY api_tarea1.db api_tarea1.db
 COPY service-account.json service-account.json
+COPY service-account.enc service-account.enc
 
 RUN rustc --version && cargo --version
 
@@ -26,6 +27,7 @@ COPY --from=builder /usr/src/app/api_tarea1.db api_tarea1.db
 COPY dll/ /usr/local/lib/
 
 COPY service-account.json service-account.json
+COPY service-account.enc service-account.enc
 
 EXPOSE 8080
 
