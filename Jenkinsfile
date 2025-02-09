@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        REGISTRY_URL = 'http://localhost:8082/repository/docker-hosted'
+        REGISTRY_URL = 'http://host.docker.internal:8082/repository/docker-hosted'
         REGISTRY_CREDENTIALS = 'nexus-credentials-id'
         IMAGE_NAME = 'anthonynaudts/api_tarea2'
         IMAGE_TAG = 'v1'
