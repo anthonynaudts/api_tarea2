@@ -51,22 +51,6 @@ pipeline {
             }
         }
 
-        stage('Desplegar en Servidor') {
-            steps {
-                script {
-                    sshagent(['server-ssh-key']) {
-                        bat """
-                        ssh ${SERVER_USER}@${SERVER_IP} '
-                        docker pull ${IMAGE_NAME} &&
-                        docker stop ${CONTAINER_NAME} || true &&
-                        docker rm ${CONTAINER_NAME} || true &&
-                        docker run -d --name ${CONTAINER_NAME} -p ${HOST_PORT}:${CONTAINER_PORT} ${IMAGE_NAME}
-                        '
-                        """
-                    }
-                }
-            }
-        }
     }
 
     post {
