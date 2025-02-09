@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        REGISTRY_URL = 'http://host.docker.internal:8082/repository/docker-hosted'
+        REGISTRY_URL = 'host.docker.internal:8082'
         REGISTRY_CREDENTIALS = 'nexus-credentials-id'
         IMAGE_NAME = 'anthonynaudts/api_tarea2'
         IMAGE_TAG = 'v1'
@@ -33,7 +33,10 @@ pipeline {
         stage('Construir Imagen Docker') {
             steps {
                 script {
-                    bat "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+                    bat """
+                        docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
+                        docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${REGISTRY_URL}/${IMAGE_NAME}:${IMAGE_TAG}
+                    """
                 }
             }
         }
@@ -41,15 +44,12 @@ pipeline {
         stage('Subir Imagen a Nexus') {
             steps {
                 script {
-                    withDockerRegistry([credentialsId: 'nexus-credentials-id', url: 'http://host.docker.internal:8082/repository/docker-hosted']) {
-                        bat """
-                            docker push ${IMAGE_NAME}:${IMAGE_TAG}
-                        """
+                    withDockerRegistry([credentialsId: REGISTRY_CREDENTIALS, url: "http://${REGISTRY_URL}"]) {
+                        bat "docker push ${REGISTRY_URL}/${IMAGE_NAME}:${IMAGE_TAG}"
                     }
                 }
             }
         }
-
 
         
     }
