@@ -16,17 +16,16 @@ pipeline {
         
 
         stage('Desplegar en Servidor') {
-    steps {
-        script {
-            withCredentials([sshUserPrivateKey(credentialsId: 'server-ssh-key', keyFileVariable: 'SSH_KEY')]) {
-                bat """
-                ssh -vvv -o StrictHostKeyChecking=no -i %SSH_KEY% ${SERVER_USER}@${SERVER_IP} ^
-                "echo 'Conexión Exitosa desde Jenkins'"
-                """
+            steps {
+                script {
+                    withCredentials([sshUserPrivateKey(credentialsId: 'server-ssh-key', keyFileVariable: 'SSH_KEY')]) {
+                        bat """
+                            ssh -i %SSH_KEY% -o StrictHostKeyChecking=no root@159.65.162.105 "echo Conexión Exitosa && docker pull anthonynaudts/api_tarea2:v1 && docker stop api_tarea25000 || true && docker rm api_tarea25000 || true && docker run -d --name api_tarea25000 -p 5000:8080 anthonynaudts/api_tarea2:v1"
+                        """
+                    }
+                }
             }
         }
-    }
-}
     }
 
     post {
