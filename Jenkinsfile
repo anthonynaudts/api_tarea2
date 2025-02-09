@@ -51,6 +51,24 @@ pipeline {
             }
         }
 
+        stage('Desplegar en Servidor') {
+            steps {
+                script {
+                    sshagent(['server-ssh-key']) {
+                        bat """
+                        ssh -o StrictHostKeyChecking=no ${SERVER_USER}@${SERVER_IP} '
+                        docker login -u admin -p admin http://${REGISTRY_URL}
+                        docker pull ${REGISTRY_URL}/${IMAGE_NAME}:${IMAGE_TAG}
+                        docker stop ${CONTAINER_NAME} || true
+                        docker rm ${CONTAINER_NAME} || true
+                        docker run -d --name ${CONTAINER_NAME} -p ${HOST_PORT}:${CONTAINER_PORT} ${REGISTRY_URL}/${IMAGE_NAME}:${IMAGE_TAG}
+                        '
+                        """
+                    }
+                }
+            }
+        }
+
         
     }
 
