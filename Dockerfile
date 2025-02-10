@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 FROM rust:1.72-bullseye as builder
+=======
+FROM rust:1.72-bullseye AS builder
+>>>>>>> desplegar
 
 WORKDIR /usr/src/app
 
