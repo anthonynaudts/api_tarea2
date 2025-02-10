@@ -13,6 +13,10 @@ pipeline {
         HOST_PORT = '5000'
     }
 
+    triggers {
+        pollSCM('H/5 * * * *')
+    }
+
     stages {
         stage('Verificar Rama') {
             steps {
